@@ -7,6 +7,8 @@ from http_collector import HTTPCollector
 from modbus_collector import ModbusCollector
 from data_processor import DataProcessor
 from adaptive_router import AdaptiveRouter
+from cache_manager import CacheManager
+from can_collector import CANCollector
 
 class SmartGateway:
     def __init__(self):
@@ -14,15 +16,15 @@ class SmartGateway:
         self.data_buffer = []
         self.processor = DataProcessor()
         self.router = AdaptiveRouter()
-        
+        self.cache = CacheManager()
+
         self.collectors = [
             HTTPCollector(self.on_data_received),
-            ModbusCollector(self.on_data_received)
+            ModbusCollector(self.on_data_received),
+            CANCollector(self.on_data_received)
         ]
         
-        # SIMPLIFIÉ: pas de SQLite pour la démo
-        print("Passerelle démarrée (sans cache SQLite)")
-    
+        
     def on_data_received(self, sensor_id, data):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {sensor_id}: {data}")
         
@@ -37,7 +39,7 @@ class SmartGateway:
         if processed:
             success = self.router.route(processed[0])
             if not success:
-                print(f"⚠️ Données perdues: {sensor_id}")
+                self.cache.add(sensor_id, processed[0]['data'], processed[0]['priority'])
     
     def start(self):
         print("=== Passerelle Intelligente ===")

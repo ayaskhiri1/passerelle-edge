@@ -31,6 +31,13 @@ def receive_data():
         print(f"❌ Erreur Slow Cloud: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/stats', methods=['GET'])
+def get_stats():
+    return jsonify({
+        "total_received": len(received_data),
+        "last_received": received_data[-1] if received_data else None
+    })
+
 if __name__ == '__main__':
     print("🌥️ Slow Cloud démarré sur http://localhost:8081")
     app.run(host='0.0.0.0', port=8081, debug=False)
